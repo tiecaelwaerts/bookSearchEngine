@@ -1,5 +1,6 @@
 import type { User } from '../models/User.js';
 import type { Book } from '../models/Book.js';
+import { gql } from '@apollo/client';
 
 // route to get logged in user's info (needs the token)
 export const getMe = (token: string) => {
@@ -58,3 +59,99 @@ export const deleteBook = (bookId: string, token: string) => {
 export const searchGoogleBooks = (query: string) => {
   return fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}`);
 };
+
+export const LOGIN_USER = gql`
+  mutation login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      token
+      user {
+        _id
+        username
+        email
+        savedBooks {
+          bookId
+          title
+          authors
+          description
+          image
+          link
+        }
+      }
+    }
+  }
+`;
+
+export const CREATE_USER = gql`
+  mutation createUser($username: String!, $email: String!, $password: String!) {
+    createUser(username: $username, email: $email, password: $password) {
+      token
+      user {
+        _id
+        username
+        email
+        savedBooks {
+          bookId
+          title
+          authors
+          description
+          image
+          link
+        }
+      }
+    }
+  }
+`;
+
+export const SAVE_BOOK = gql`
+  mutation saveBook($bookData: BookInput!) {
+    saveBook(bookData: $bookData) {
+      _id
+      username
+      email
+      savedBooks {
+        bookId
+        title
+        authors
+        description
+        image
+        link
+      }
+    }
+  }
+`;
+
+export const DELETE_BOOK = gql`
+  mutation deleteBook($bookId: String!) {
+    deleteBook(bookId: $bookId) {
+      _id
+      username
+      email
+      savedBooks {
+        bookId
+        title
+        authors
+        description
+        image
+        link
+      }
+    }
+  }
+`;
+
+export const GET_ME = gql`
+  query me {
+    me {
+      _id
+      username
+      email
+      savedBooks {
+        bookId
+        title
+        authors
+        description
+        image
+        link
+      }
+    }
+  }
+`;
