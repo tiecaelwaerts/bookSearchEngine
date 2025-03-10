@@ -1,41 +1,38 @@
-import { useState, useEffect } from 'react';
 import { Container, Card, Button, Row, Col } from 'react-bootstrap';
 import { useQuery, useMutation } from '@apollo/client';
-import { GET_ME, DELETE_BOOK } from '../utils/API';
+
+import { QUERY_ME } from '../utils/queries.ts';
+import { REMOVE_BOOK } from '../utils/mutations.ts';
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
-import type { User } from '../models/User';
+import type { Book } from '../models/Book';
 
 const SavedBooks = () => {
-  const { loading, data } = useQuery(GET_ME);
-  const [deleteBook] = useMutation(DELETE_BOOK);
-  const [userData, setUserData] = useState<User>({
-    username: '',
-    email: '',
-    password: '',
-    savedBooks: [],
-  });
+  const [removeBook] = useMutation(REMOVE_BOOK);
+  const { loading, data } = useQuery(QUERY_ME);
 
-  useEffect(() => {
-    if (data) {
-      setUserData(data.me);
-    }
-  }, [data]);
+  let userData = data?.me;
 
   const handleDeleteBook = async (bookId: string) => {
+    const token = Auth.loggedIn() ? Auth.getToken() : null;
+
+    if (!token) {
+      return false;
+    }
+
     try {
-      const { data } = await deleteBook({
-        variables: { bookId },
+      const { data } = await removeBook({
+        variables: { bookId: bookId },
       });
 
-      setUserData(data.deleteBook);
+      userData = data;
       removeBookId(bookId);
     } catch (err) {
       console.error(err);
     }
   };
 
-  if (loading) {
+  if (loading === true) {
     return <h2>LOADING...</h2>;
   }
 
@@ -59,7 +56,7 @@ const SavedBooks = () => {
             : 'You have no saved books!'}
         </h2>
         <Row>
-          {userData.savedBooks.map((book) => {
+          {userData.savedBooks.map((book: Book) => {
             return (
               <Col md='4'>
                 <Card key={book.bookId} border='dark'>

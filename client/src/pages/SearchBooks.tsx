@@ -9,9 +9,11 @@ import {
   Row
 } from 'react-bootstrap';
 import { useMutation } from '@apollo/client';
+
 import Auth from '../utils/auth';
-import { SAVE_BOOK } from '../utils/API';
+import { searchGoogleBooks } from '../utils/API';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
+import { SAVE_BOOK } from '../utils/mutations.ts';
 import type { Book } from '../models/Book';
 import type { GoogleAPIBook } from '../models/GoogleAPIBook';
 
@@ -33,7 +35,7 @@ const SearchBooks = () => {
     }
 
     try {
-      const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${searchInput}`);
+      const response = await searchGoogleBooks(searchInput);
 
       if (!response.ok) {
         throw new Error('something went wrong!');
@@ -65,8 +67,8 @@ const SearchBooks = () => {
     }
 
     try {
-      const { data } = await saveBook({
-        variables: { bookData: bookToSave },
+      await saveBook({
+        variables: { input: { ...bookToSave } },
       });
 
       setSavedBookIds([...savedBookIds, bookToSave.bookId]);

@@ -2,15 +2,21 @@ import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 import { useMutation } from '@apollo/client';
-import { CREATE_USER } from '../utils/API';
+
+import { ADD_USER } from '../utils/mutations.ts';
 import Auth from '../utils/auth';
 import type { User } from '../models/User';
 
-const SignupForm = ({ handleModalClose }: { handleModalClose: () => void }) => {
+// biome-ignore lint/correctness/noEmptyPattern: <explanation>
+const SignupForm = ({}: { handleModalClose: () => void }) => {
+  // set initial form state
   const [userFormData, setUserFormData] = useState<User>({ username: '', email: '', password: '', savedBooks: [] });
+  // set state for form validation
   const [validated] = useState(false);
+  // set state for alert
   const [showAlert, setShowAlert] = useState(false);
-  const [createUser] = useMutation(CREATE_USER);
+  // create function to create a new user
+  const [addUser] = useMutation(ADD_USER);
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -20,6 +26,7 @@ const SignupForm = ({ handleModalClose }: { handleModalClose: () => void }) => {
   const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    // check if form has everything (as per react-bootstrap docs)
     const form = event.currentTarget;
     if (form.checkValidity() === false) {
       event.preventDefault();
@@ -27,12 +34,11 @@ const SignupForm = ({ handleModalClose }: { handleModalClose: () => void }) => {
     }
 
     try {
-      const { data } = await createUser({
-        variables: { username: userFormData.username, email: userFormData.email, password: userFormData.password },
+      const { data } = await addUser({
+        variables: { input: { username: userFormData.username, email: userFormData.email, password: userFormData.password } },
       });
 
-      Auth.login(data.createUser.token);
-      handleModalClose();
+      Auth.login(data.addUser.token);
     } catch (err) {
       console.error(err);
       setShowAlert(true);
@@ -42,13 +48,15 @@ const SignupForm = ({ handleModalClose }: { handleModalClose: () => void }) => {
       username: '',
       email: '',
       password: '',
-      savedBooks: [],
+      savedBooks: []
     });
   };
 
   return (
     <>
+      {/* This is needed for the validation functionality above */}
       <Form noValidate validated={validated} onSubmit={handleFormSubmit}>
+        {/* show alert if server response is bad */}
         <Alert dismissible onClose={() => setShowAlert(false)} show={showAlert} variant='danger'>
           Something went wrong with your signup!
         </Alert>
