@@ -46,19 +46,19 @@ const resolvers = {
             return { token, user };
         },
 
-        login: async (_parent: unknown, { username, email, password }: {username: string, email: string, password: string}): Promise<{ token: string, user: User }> => {
+        login: async (_parent: unknown, { email, password }: { email: string, password: string }): Promise<{ token: string, user: User }> => {
             const user = await User.findOne({
-                $or: [{ username: username }, { email: email }]
+                $or: [{ email: email }]
             });
 
             if (!user) {
-                throw AuthenticationError;
+                throw new AuthenticationError('User not found');
             }
 
             const correctPw = await user.isCorrectPassword(password);
 
             if (!correctPw) {
-                throw new AuthenticationError('Not Authenticated');
+                throw new AuthenticationError('Incorrect password');
             }
 
             const token = signToken(user.username, user.email, user._id);
