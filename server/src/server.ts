@@ -11,7 +11,7 @@ const __dirname = path.resolve();
 
 const server = new ApolloServer({
   typeDefs,
-  resolvers
+  resolvers,
 });
 
 const startApolloServer = async () => {
@@ -26,7 +26,7 @@ const startApolloServer = async () => {
 
   app.use('/graphql', expressMiddleware(server as any,
     {
-      context: authenticateToken as any
+      context: ({ req }) => authenticateToken({ req })
     }
   ));
 
